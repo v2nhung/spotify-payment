@@ -1,0 +1,66 @@
+server:
+  port: ${PORT:8085}
+
+spring:
+  application:
+    name: spotify-payment
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${JDBC_URL:jdbc:postgresql://localhost:5432/spotify_payment}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    hikari:
+      pool-name: spotify-payment
+      connection-timeout: 30000
+      idle-timeout: 30000
+      max-lifetime: 180000
+      minimum-idle: ${WRITE_MINIMUM_IDLE:5}
+      maximum-pool-size: ${WRITE_MAXIMUM_POOL_SIZE:10}
+      auto-commit: true
+  flyway:
+    schemas: payments
+    locations: classpath:/db/migration
+    check-location: false
+    baseline-on-migrate: true
+    enabled: ${FLYWAY_ENABLED:true}
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+management:
+  health:
+    db:
+      enabled: ${MANAGEMENT_HEALTH_DB_ENABLED:true}
+    default:
+      enabled: ${MANAGEMENT_HEALTH_DEFAULTS_ENABLED:true}
+  endpoints:
+    web:
+      exposure:
+        include: ${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE:health,drain,metrics}
+  endpoint:
+    health:
+      show-details: ${MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS:always}
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    healthcheck:
+      enabled: true
+    serviceUrl:
+      defaultZone: ${REGISTRY_SERVICE:http://localhost:8081/eureka/}
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: FULL
